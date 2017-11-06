@@ -19,6 +19,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+import javafx.stage.Popup;
 
 /**
  * FXML Controller class
@@ -28,10 +29,7 @@ import javafx.stage.FileChooser;
 public class InterfazFXMLController implements Initializable {
 
     @FXML
-    private Button btnCargar;
-    @FXML
     private TextField txtBusqueda;
-    @FXML
     private Label lblArchivo;
     @FXML
     private Button btnBuscar;
@@ -52,6 +50,12 @@ public class InterfazFXMLController implements Initializable {
     private Button btnGrabar;
     @FXML
     private Label lblGrabar;
+    @FXML
+    private Button btnAgregar;
+    @FXML
+    private TextArea txtTabla;
+    @FXML
+    private Button btnReiniciar;
 
     /**
      * Initializes the controller class.
@@ -63,7 +67,7 @@ public class InterfazFXMLController implements Initializable {
     }    
 
     @FXML
-    private void handleButtonCargar(ActionEvent event) throws IOException {
+    private void handleButtonAgregar(ActionEvent event) throws IOException {
         lblGrabar.setText("");
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Abrir archivo de texto");
@@ -72,11 +76,13 @@ public class InterfazFXMLController implements Initializable {
         File file = chooser.showOpenDialog(null);
         if (file != null) {
             limpiarBusqueda();
-            lblArchivo.setText(file.getAbsolutePath());
+            String r = txtArchivo.getText() + "\n\t" + file.getAbsolutePath() ;
+            txtArchivo.setText(r);
             proc.procesarPorPalabra(file);
             cargado=true;
             lblDistintos.setText(String.valueOf(proc.getCount()));
-            txtArchivo.setText(proc.toString());
+            txtTabla.setText(proc.toString());
+            
         }
     }
 
@@ -109,8 +115,6 @@ public class InterfazFXMLController implements Initializable {
     @FXML
     private void handleButtonGrabar(ActionEvent event) {
         proc.grabarTabla();
-        lblGrabar.setTextFill(Color.GREEN);
-        lblGrabar.setText("Se grabó con exito");
         
     }
     

@@ -6,22 +6,24 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane id="AnchorPane" prefHeight="436.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/8.0.111" xmlns:fx="http://javafx.com/fxml/1" fx:controller="interfaces.InterfazFXMLController">
+<AnchorPane id="AnchorPane" prefHeight="436.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="interfaces.InterfazFXMLController">
    <children>
-      <Button fx:id="btnCargar" layoutX="25.0" layoutY="69.0" mnemonicParsing="false" onAction="#handleButtonCargar" text="Cargar" />
-      <Label layoutX="25.0" layoutY="27.0" text="Seleccione archivo:" />
-      <Label layoutX="25.0" layoutY="123.0" text="Ingrese palabra a buscar:" />
-      <TextField fx:id="txtBusqueda" layoutX="25.0" layoutY="149.0" prefHeight="25.0" prefWidth="179.0" />
-      <Label fx:id="lblArchivo" layoutX="97.0" layoutY="73.0" prefHeight="17.0" prefWidth="187.0" text="NombreArchivo" />
-      <Button fx:id="btnBuscar" layoutX="25.0" layoutY="188.0" mnemonicParsing="false" onAction="#handleButtonBuscar" text="Buscar" />
-      <Button fx:id="btnLimpiar" layoutX="100.0" layoutY="188.0" mnemonicParsing="false" onAction="#handleButtonLimpiar" text="Limpiar" />
-      <Label layoutX="25.0" layoutY="264.0" text="Cantidad de coincidencias:" />
-      <Label fx:id="lblContador" layoutX="175.0" layoutY="264.0" text="0" />
-      <Button fx:id="btnGrabar" layoutX="25.0" layoutY="334.0" mnemonicParsing="false" onAction="#handleButtonGrabar" text="Grabar" />
-      <TextArea fx:id="txtArchivo" editable="false" layoutX="388.0" layoutY="10.0" prefHeight="417.0" prefWidth="348.0" />
-      <Label layoutX="25.0" layoutY="292.0" text="Cantidad de Palabras distintas:" />
-      <Label fx:id="lblDistintos" layoutX="190.0" layoutY="292.0" text="0" />
-      <Label fx:id="lblResultado" layoutX="210.0" layoutY="153.0" />
-      <Label fx:id="lblGrabar" layoutX="83.0" layoutY="338.0" />
+      <Button fx:id="btnAgregar" layoutX="258.0" layoutY="193.0" mnemonicParsing="false" onAction="#handleButtonAgregar" text="Agregar" />
+      <Label layoutX="27.0" layoutY="18.0" text="Archivos Cargados:" />
+      <Label layoutX="22.0" layoutY="235.0" text="Ingrese palabra a buscar:" />
+      <TextField fx:id="txtBusqueda" layoutX="22.0" layoutY="261.0" prefHeight="25.0" prefWidth="179.0" />
+      <Button fx:id="btnBuscar" layoutX="22.0" layoutY="300.0" mnemonicParsing="false" onAction="#handleButtonBuscar" text="Buscar" />
+      <Button fx:id="btnLimpiar" layoutX="97.0" layoutY="300.0" mnemonicParsing="false" onAction="#handleButtonLimpiar" text="Limpiar" />
+      <Label layoutX="26.0" layoutY="341.0" text="Cantidad de coincidencias:" />
+      <Label fx:id="lblContador" layoutX="176.0" layoutY="341.0" text="0" />
+      <Button fx:id="btnGrabar" layoutX="25.0" layoutY="386.0" mnemonicParsing="false" onAction="#handleButtonGrabar" text="Grabar" />
+      <TextArea fx:id="txtTabla" editable="false" layoutX="351.0" layoutY="38.0" prefHeight="357.0" prefWidth="385.0" />
+      <Label layoutX="353.0" layoutY="403.0" text="Cantidad de Palabras distintas:" />
+      <Label fx:id="lblDistintos" layoutX="518.0" layoutY="403.0" text="0" />
+      <Label fx:id="lblResultado" layoutX="207.0" layoutY="265.0" />
+      <Label fx:id="lblGrabar" layoutX="405.0" layoutY="386.0" />
+      <TextArea fx:id="txtArchivo" editable="false" layoutX="26.0" layoutY="40.0" prefHeight="148.0" prefWidth="292.0" />
+      <Label layoutX="351.0" layoutY="18.0" text="Contenido tabla:" />
+      <Button fx:id="btnReiniciar" layoutX="115.0" layoutY="386.0" mnemonicParsing="false" text="Reiniciar" />
    </children>
 </AnchorPane>
