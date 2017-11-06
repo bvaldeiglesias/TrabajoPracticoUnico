@@ -170,30 +170,41 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
         isNull(value);
 
         int ib = this.h(key);
-        TSBArrayList<Map.Entry<K, V>> bucket = this.table[ib];
 
         V old = null;
-        Map.Entry<K, V> x = this.search_for_entry((K) key);
-        if (x != null) {
-            old = x.getValue();
-            x.setValue(value);
-        } else {
-            if (this.averageLength() >= this.load_factor * 10) {
-                this.rehash();
-            }
-            ib = this.h(key);
-            bucket = this.table[ib];
 
-            Map.Entry<K, V> entry = new Entry<>(key, value);
-            bucket.add(entry);
-            bucket.setEstado(EstadoCasilla.CLOSE);
-
-            this.count++;
-            this.modCount++;
+        if (this.count >= this.load_factor * table.length) {
+            this.rehash();
         }
+
+        if (this.containsKey(key)) {
+           IteratorInterno it = new IteratorInterno(h(key.hashCode()));
+            while (it.hasNext()) {
+                Map.Entry<K, V> entry = it.next();
+                if (entry.getKey().equals(key)) {
+                    it.setValue(value);
+                    break;
+                }
+            }
+
+        } else {
+            IteratorInterno it = new IteratorInterno(h(key.hashCode()));
+            while (it.hasNext()) {
+                Map.Entry<K, V> entry = it.next();
+                if (entry == null) {
+                    it.add(key, value);
+                    break;
+                }
+            }
+            this.count++;
+        }
+
+        
+        this.modCount++;
 
         return old;
     }
+    
 
     /**
      * Elimina de la tabla la clave key (y su correspondiente valor asociado).
@@ -209,17 +220,20 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
         isNull(key);
 
         int ib = this.h(key.hashCode());
-        TSBArrayList<Map.Entry<K, V>> bucket = this.table[ib];
-
-        int ik = this.search_for_index((K) key, bucket);
         V old = null;
-        if (ik != -1) //es decir, lo encontro
-        {
-            old = bucket.remove(ik).getValue();
-            bucket.setEstado(EstadoCasilla.TUMBSTONE);
-            this.count--;
-            this.modCount++;
+
+        IteratorInterno it = new IteratorInterno(ib);
+        while (it.hasNext()) {
+            Map.Entry<K, V> entry = it.next();
+            if (key.equals(entry.getKey())) {
+                it.remove();
+                old = entry.getValue();
+            }
         }
+
+        this.count--;
+        this.modCount++;
+
         return old;
     }
 
@@ -245,11 +259,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
      */
     @Override
     public void clear() {
-        this.table = new TSBArrayList[this.initial_capacity];
-        for (int i = 0; i < this.table.length; i++) {
-            this.table[i] = new TSBArrayList<>();
-            this.table[i].setEstado(EstadoCasilla.OPEN);
-        }
+        this.table = new Map.Entry[initial_capacity];
         this.count = 0;
         this.modCount++;
     }
@@ -326,9 +336,9 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
     @Override
     protected Object clone() throws CloneNotSupportedException {
         TSB_OAHashtable<K, V> t = (TSB_OAHashtable<K, V>) super.clone();
-        t.table = new TSBArrayList[table.length];
+        t.table = new Map.Entry[table.length];
         for (int i = table.length; i-- > 0;) {
-            t.table[i] = (TSBArrayList<Map.Entry<K, V>>) table[i].clone();
+            t.table[i] = (Map.Entry<K, V>) table[i];
         }
         t.keySet = null;
         t.entrySet = null;
@@ -401,7 +411,9 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
         StringBuilder cad = new StringBuilder("");
         cad.append("\nLista: ").append("\n\t");
         for (int i = 0; i < this.table.length; i++) {
-            cad.append(i).append(":").append(this.table[i].toString()).append("\n\t");
+            if (this.table[i] != null) {
+                cad.append(i).append(":").append(this.table[i].toString()).append("\n\t");
+            }   
         }
         return cad.toString();
     }
@@ -419,13 +431,9 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
             return false;
         }
 
-        for (TSBArrayList<Map.Entry<K, V>> bucket : this.table) {
-            Iterator<Map.Entry<K, V>> it = bucket.iterator();
-            while (it.hasNext()) {
-                Map.Entry<K, V> entry = it.next();
-                if (value.equals(entry.getValue())) {
-                    return true;
-                }
+        for (Map.Entry<K, V> entry : this.table) {
+            if (value.equals(entry.getValue())) {
+                return true;
             }
         }
         return false;
@@ -448,42 +456,30 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
             new_length = TSB_OAHashtable.MAX_SIZE;
         }
 
-        // crear el nuevo arreglo con new_length listas vacías...
-        TSBArrayList<Map.Entry<K, V>> temp[] = new TSBArrayList[new_length];
-        for (int j = 0; j < temp.length; j++) {
-            temp[j] = new TSBArrayList<>();
-        }
+        Map.Entry<K, V> old[] = this.table;
+
+        this.table = new Map.Entry[new_length];
 
         // notificación fail-fast iterator... la tabla cambió su estructura...
         this.modCount++;
 
         // recorrer el viejo arreglo y redistribuir los objetos que tenia...
-        for (int i = 0; i < this.table.length; i++) {
-            // entrar en la lista numero i, y recorrerla con su iterador...
-            Iterator<Map.Entry<K, V>> it = this.table[i].iterator();
-            while (it.hasNext()) {
-                // obtener un objeto de la vieja lista...
-                Map.Entry<K, V> x = it.next();
+        for (Map.Entry<K, V> entry : old) {
 
-                // obtener su nuevo valor de dispersión para el nuevo arreglo...
-                K key = x.getKey();
-                int y = this.h(key, temp.length);
-
-                // insertarlo en el nuevo arreglo, en la lista numero "y"...
-                temp[y].add(x);
+            if (entry != null) {
+                this.put(entry.getKey(), entry.getValue());
             }
         }
-
-        // cambiar la referencia table para que apunte a temp...
-        this.table = temp;
     }
+
+
 
     //************************ Métodos privados.
     /*
      * Función hash. Toma una clave entera k y calcula y retorna un índice 
      * válido para esa clave para entrar en la tabla.     
      */
-    private int h(int k) {
+    private int h (int k) {
         return h(k, this.table.length);
     }
 
@@ -527,14 +523,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
         return h(key.hashCode(), t);
     }
 
-    /**
-     * Calcula la longitud promedio de las listas de la tabla.
-     *
-     * @return la longitud promedio de la listas contenidas en la tabla.
-     */
-    private int averageLength() {
-        return this.count / this.table.length;
-    }
+    
 
     /*
      * Busca en la tabla un objeto Entry cuya clave coincida con key.
@@ -544,14 +533,17 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
     private Map.Entry<K, V> search_for_entry(K key) {
 
         
-        //IteratorInterno<Map.Entry<K,V>> it = new IteratorInterno(key.hashCode());
+        if (this.count == 0) {
+            return null;
+        }
         int kk = h(key.hashCode());
         IteratorInterno it = new IteratorInterno(kk);
         while (it.hasNext()) {
             Map.Entry<K, V> entry = it.next();
-            if (key.equals(entry.getKey())) {
+            if (entry != null && key.equals(entry.getKey())) {
                 return entry;
             }
+
         }
         return null;
     }
@@ -566,12 +558,28 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
         IteratorInterno it = new IteratorInterno(ib);
         for (int i = ib; it.hasNext(); i++) {
             Map.Entry<K, V> entry = it.next();
-            if (key.equals(entry.getKey())) {
+            if (entry != null && key.equals(entry.getKey())) {
                 return i;
             }
         }
         return -1;
     }
+    
+    private Map.Entry<K, V> search_for_OPEN_pos(K key) {
+
+        
+        //IteratorInterno<Map.Entry<K,V>> it = new IteratorInterno(key.hashCode());
+        int kk = h(key.hashCode());
+        IteratorInterno it = new IteratorInterno(kk);
+        while (it.hasNext()) {
+            Map.Entry<K, V> entry = it.next();
+            if (key.equals(entry.getKey())) {
+                return entry;
+            }
+        }
+        return null;
+    }
+    
 
     //************************ Clases Internas.
     /**
@@ -582,7 +590,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
 
         private int current; //indice del elemento que hay que procesar
         private boolean next_ok; // true: next fue invocado (usado por remove()...)
-        private int valorCuadratico = 1; //indice utilizado para el avance cuadratico
+        private int valorCuadratico = 0; //indice utilizado para el avance cuadratico
         
         public IteratorInterno(int index) {
             current = index;
@@ -591,35 +599,28 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
 
         @Override
         public boolean hasNext() {
-            if (TSB_OAHashtable.this.isEmpty()) return false;
-            if (current >= table.length) {
-                    current = (current % table.length) - 1;     
-            }  
-            if (table[current].getEstado() == EstadoCasilla.OPEN) {
+            current += (valorCuadratico*valorCuadratico);
+            valorCuadratico++;
+            if (current > table.length*10 ) {
                 return false;
-            } else {
-                return true;
             }
+            if (current >= table.length) {
+                    current = (current % table.length);     
+            } 
+            if (table == null) return false;
+  
+            return true;
         }
 
         @Override
         public Map.Entry<K, V> next() {
-            if (!hasNext()) {
-                throw new NoSuchElementException("No quedan elementos por recorrer");
-            }
-            
-            TSBArrayList<Map.Entry<K,V>> t[] = TSB_OAHashtable.this.table;
-            TSBArrayList<Map.Entry<K, V>> bucket = t[current];
-            Map.Entry<K,V> value = bucket.get(0);   
-            
-            current += (valorCuadratico*valorCuadratico);
-            valorCuadratico++;
-            if (current > table.length) {
-                    current = current % table.length - 1;     
-            }  
+//            if (!hasNext()) {
+//                throw new NoSuchElementException("No quedan elementos por recorrer");
+//            }
+
             next_ok = true;    
 
-            return value;
+            return table[current];
         }
         
         @Override
@@ -628,10 +629,18 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
                 throw new IllegalStateException("remove(): debe invocar a next() antes de remove()...");
             }
             count--;
-            table[current] = null;
-            table[current].setEstado(EstadoCasilla.TUMBSTONE);
+            table[current] = new Tombstone();
+            
 
             next_ok = false;
+        }
+        
+        public void add(K key, V value){
+            table[current] = new Entry(key, value);
+        }
+        
+        public void setValue(V value){
+            table[current].setValue(value);
         }
     }
 
@@ -648,9 +657,9 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
         private V value;
 
         public Entry(K key, V value) {
-            if (key == null || value == null) {
-                throw new IllegalArgumentException("Entry(): parámetro null");
-            }
+//            if (key == null || value == null) {
+//                throw new IllegalArgumentException("Entry(): parámetro null");
+//            }
             this.key = key;
             this.value = value;
         }
@@ -768,15 +777,12 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
                 if (!hasNext()) {
                 throw new NoSuchElementException("No quedan elementos por recorrer");
             
-                }
-            TSBArrayList<Map.Entry<K,V>> t[] = TSB_OAHashtable.this.table;
-            TSBArrayList<Map.Entry<K, V>> bucket = t[current];
-            K k= bucket.get(current).getKey();   
+                }  
             
             current ++;  
             next_ok = true;    
 
-            return k;
+            return table[current].getKey();
             }
 
             @Override
@@ -785,8 +791,8 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
                 throw new IllegalStateException("remove(): debe invocar a next() antes de remove()...");
             }
             count--;
-            table[current] = null;
-            table[current].setEstado(EstadoCasilla.TUMBSTONE);
+            table[current] = new Tombstone();
+            
 
             next_ok = false;   
             }
@@ -824,21 +830,21 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
          */
         @Override
         public boolean remove(Object o) {
-            if(o == null) { throw new NullPointerException("remove(): parámetro null");}
-            if(!(o instanceof Entry)) { return false; }
-
-            Map.Entry<K, V> entry = (Map.Entry<K, V>) o;
-            K key = entry.getKey();
-            int index = TSB_OAHashtable.this.h(key);
-            TSBArrayList<Map.Entry<K, V>> bucket = TSB_OAHashtable.this.table[index];
-            
-            if(bucket.remove(entry)) 
-            {
-                TSB_OAHashtable.this.count--;
-                TSB_OAHashtable.this.modCount++;
-                return true;
-            }
-            return false;
+//            if(o == null) { throw new NullPointerException("remove(): parámetro null");}
+//            if(!(o instanceof Entry)) { return false; }
+//
+//            Map.Entry<K, V> entry = (Map.Entry<K, V>) o;
+//            K key = entry.getKey();
+//            int index = TSB_OAHashtable.this.h(key);
+//            Map.Entry<K, V> bucket = TSB_OAHashtable.this.table[index];
+//            
+//            if(bucket.remove(entry)) 
+//            {
+//                TSB_OAHashtable.this.count--;
+//                TSB_OAHashtable.this.modCount++;
+//                return true;
+//            }
+              return false;
         }     
 
         @Override
@@ -968,4 +974,13 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
             }
         }
     }
+    
+    public class Tombstone extends Entry<K, V>{
+      private Entry entry;
+
+        public Tombstone() {
+            super(null , null);
+        }
+ 
+      }
 }
