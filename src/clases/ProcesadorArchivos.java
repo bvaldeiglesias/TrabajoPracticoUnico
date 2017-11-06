@@ -20,7 +20,7 @@ import java.util.Scanner;
 
 /**
  *
- * @author Bruno
+ * @author TSB_Team
  */
 public class ProcesadorArchivos implements Serializable {
 
@@ -73,18 +73,15 @@ public class ProcesadorArchivos implements Serializable {
     }
 
     public void procesarPorPalabra(File file) {
-        try (Scanner sc = new Scanner(file)) {
+        try (Scanner sc = new Scanner(file,"ISO-8859-1")) {
             while (sc.hasNext()) //hasNextInt se fija is hay un proximo int
             {
                 String palabra = sc.next();
                 palabra = palabra.replaceAll("[-+.^:,?¿¡!]", "");
                 palabra = palabra.toUpperCase();
                 insertarPalabra(palabra);
-                //arreglo.add(palabra);
-                //System.out.println(palabra);
             }
 
-            //System.out.println(arreglo.toString());
 
         } catch (FileNotFoundException e) {
             System.err.println("No existe el archivo");
@@ -98,17 +95,18 @@ public class ProcesadorArchivos implements Serializable {
     }
 
     public void insertarPalabra(String text) {
-        int value = 0;
-        if (tabla.get(text) != null) {
-            value += 1;
+        if (tabla.containsKey(text)) {
+            int value = (int) tabla.get(text) + 1;
             tabla.put(text, value);
         } else {
-            tabla.put(text, value);
+            tabla.put(text, 1);
         }
     }
 
     public int buscarPalabra(String text) {
         int value = 0;
+        text = text.replaceAll("[-+.^:,?¿¡!]", "");
+        text = text.toUpperCase();
         if (tabla.get(text) != null) {
             value = (int) tabla.get(text);
         }
@@ -152,4 +150,11 @@ public class ProcesadorArchivos implements Serializable {
             System.out.println("** ERROR DE I/O **" + "\n " + ex.getMessage());
         }
     }
+
+    @Override
+    public String toString() {
+        return "ProcesadorArchivos{" + "tabla=" + tabla.toString() + '}';
+    }
+    
+    
 }
