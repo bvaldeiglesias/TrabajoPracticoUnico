@@ -3,7 +3,6 @@ package clases;
 
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
@@ -18,7 +17,7 @@ import java.util.Set;
  */
 /**
  *
- * @author a2
+ * @author TSB_Team
  * @param <K> el tipo de los objetos que serán usados como clave en la tabla.
  * @param <V> el tipo de los objetos que serán los valores de la tabla.
  */
@@ -547,28 +546,10 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
         }
         return null;
     }
-
-    /*
-     * Busca en la lista bucket un objeto Entry cuya clave coincida con key.
-     * Si lo encuentra, retorna su posicíón. Si no lo encuentra, retorna -1.
-     */
-    //Usar iterador interno con busqueda exponencial
-    private int search_for_index(K key, TSBArrayList<Map.Entry<K, V>> bucket) {
-        int ib = this.h(key);
-        IteratorInterno it = new IteratorInterno(ib);
-        for (int i = ib; it.hasNext(); i++) {
-            Map.Entry<K, V> entry = it.next();
-            if (entry != null && key.equals(entry.getKey())) {
-                return i;
-            }
-        }
-        return -1;
-    }
     
     private Map.Entry<K, V> search_for_OPEN_pos(K key) {
 
         
-        //IteratorInterno<Map.Entry<K,V>> it = new IteratorInterno(key.hashCode());
         int kk = h(key.hashCode());
         IteratorInterno it = new IteratorInterno(kk);
         while (it.hasNext()) {
