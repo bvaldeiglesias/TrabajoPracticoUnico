@@ -23,7 +23,7 @@ import javafx.stage.FileChooser;
 /**
  * FXML Controller class
  *
- * @author Bruno
+ * @author TSB_Team
  */
 public class InterfazFXMLController implements Initializable {
 
