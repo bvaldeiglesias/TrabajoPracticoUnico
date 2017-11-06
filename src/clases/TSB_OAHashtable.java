@@ -404,8 +404,9 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
     @Override
     public String toString() {
         StringBuilder cad = new StringBuilder("");
+        cad.append("\nLista: ").append("\n\t");
         for (int i = 0; i < this.table.length; i++) {
-            cad.append("\nLista ").append(i).append(":\n\t").append(this.table[i].toString());
+            cad.append(i).append(":").append(this.table[i].toString()).append("\n\t");
         }
         return cad.toString();
     }
@@ -549,7 +550,8 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
 
         
         //IteratorInterno<Map.Entry<K,V>> it = new IteratorInterno(key.hashCode());
-        IteratorInterno it = new IteratorInterno(key.hashCode());
+        int kk = h(key.hashCode());
+        IteratorInterno it = new IteratorInterno(kk);
         while (it.hasNext()) {
             Map.Entry<K, V> entry = it.next();
             if (key.equals(entry.getKey())) {
@@ -596,7 +598,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
         public boolean hasNext() {
             if (TSB_OAHashtable.this.isEmpty()) return false;
             if (current >= table.length) {
-                    current = current % table.length - 1;     
+                    current = (current % table.length) - 1;     
             }  
             if (table[current].getEstado() == EstadoCasilla.OPEN) {
                 return false;
