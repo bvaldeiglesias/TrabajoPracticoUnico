@@ -27,7 +27,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
     // el tamaño máximo que podrá tener el arreglo de soprte...
     private final static int MAX_SIZE = Integer.MAX_VALUE;
     // la tabla hash: el arreglo que contiene las listas de desborde...
-    private TSBArrayList<Map.Entry<K, V>>[] table;
+    private Map.Entry<K, V>[] table;
     // el tamaño inicial de la tabla (tamaño con el que fue creada)...
     private int initial_capacity;
     // la cantidad de objetos que contiene la tabla en TODAS sus listas...
@@ -89,11 +89,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
             initial_capacity = TSB_OAHashtable.MAX_SIZE;
         }
 
-        this.table = new TSBArrayList[initial_capacity];
-        for (int i = 0; i < table.length; i++) {
-            table[i] = new TSBArrayList<>();
-            table[i].setEstado(EstadoCasilla.OPEN);
-        }
+        this.table = new Map.Entry[initial_capacity];
         this.count = 0;
         this.modCount = 0;
     }
@@ -144,7 +140,6 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
         isNull(key);
 
         int ib = this.h(key.hashCode());
-        //TSBArrayList<Map.Entry<K, V>> bucket = this.table[ib];
 
         Map.Entry<K, V> x = this.search_for_entry((K) key);
         return (x != null) ? x.getValue() : null;
@@ -615,7 +610,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V> {
             
             TSBArrayList<Map.Entry<K,V>> t[] = TSB_OAHashtable.this.table;
             TSBArrayList<Map.Entry<K, V>> bucket = t[current];
-            Map.Entry<K,V> value = bucket.get(current);   
+            Map.Entry<K,V> value = bucket.get(0);   
             
             current += (valorCuadratico*valorCuadratico);
             valorCuadratico++;
