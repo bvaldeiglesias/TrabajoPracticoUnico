@@ -6,6 +6,7 @@
 package interfaces;
 
 import clases.ProcesadorArchivos;
+import clases.TSB_OAHashtableWriter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -44,7 +45,7 @@ public class InterfazFXMLController implements Initializable {
     @FXML
     private Label lblResultado;
     
-    private ProcesadorArchivos proc;
+    private ProcesadorArchivos procesador;
     private boolean cargado;
     @FXML
     private Button btnGrabar;
@@ -62,7 +63,7 @@ public class InterfazFXMLController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        this.proc = new ProcesadorArchivos();
+        this.procesador = new ProcesadorArchivos();
         this.cargado=false;
     }    
 
@@ -78,11 +79,10 @@ public class InterfazFXMLController implements Initializable {
             limpiarBusqueda();
             String r = txtArchivo.getText() + "\n\t" + file.getAbsolutePath() ;
             txtArchivo.setText(r);
-            proc.procesarPorPalabra(file);
+            procesador.procesarPorPalabra(file);
             cargado=true;
-            lblDistintos.setText(String.valueOf(proc.getCount()));
-            txtTabla.setText(proc.toString());
-            
+            lblDistintos.setText(String.valueOf(procesador.getCount()));
+            txtTabla.setText(procesador.toString());
         }
     }
 
@@ -94,10 +94,10 @@ public class InterfazFXMLController implements Initializable {
                 lblResultado.setTextFill(Color.RED);
                 lblResultado.setText("No se ingreso ninguna palabra");
             } else {
-                if (proc.buscarPalabra(txtBusqueda.getText())> 0) {
+                if (procesador.buscarPalabra(txtBusqueda.getText())> 0) {
                     lblResultado.setTextFill(Color.GREEN);
                     lblResultado.setText("Palabra encontrada");
-                    lblContador.setText(String.valueOf(proc.buscarPalabra(txtBusqueda.getText())));
+                    lblContador.setText(String.valueOf(procesador.buscarPalabra(txtBusqueda.getText())));
                 } else {
                     lblResultado.setTextFill(Color.RED);
                     lblResultado.setText("Palabra NO encontrada");
@@ -108,14 +108,12 @@ public class InterfazFXMLController implements Initializable {
             lblResultado.setTextFill(Color.RED);
             lblResultado.setText("No se cargó archivo aún");
         }
-        
-        
     }
     
     @FXML
     private void handleButtonGrabar(ActionEvent event) {
-        proc.grabarTabla();
-        
+        TSB_OAHashtableWriter grabar = new TSB_OAHashtableWriter();
+        grabar.grabarTabla(procesador.getTabla());
     }
     
     @FXML
@@ -129,5 +127,4 @@ public class InterfazFXMLController implements Initializable {
         lblResultado.setText("");
         lblGrabar.setText("");
     }
-    
 }
