@@ -618,7 +618,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
      * la tabla. Lanzará una IllegalArgumentException si alguno de los dos 
      * parámetros es null.
      */
-    private class Entry<K, V> implements Map.Entry<K, V> {
+    private class Entry<K, V> implements Map.Entry<K, V>, Serializable {
 
         private K key;
         private V value;
@@ -933,7 +933,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
         }
     }
     
-    public class Tombstone extends Entry<K, V>{
+    public class Tombstone extends Entry<K, V> implements Serializable{
       private Entry entry;
 
         public Tombstone() {

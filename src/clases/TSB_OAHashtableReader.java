@@ -5,6 +5,7 @@
  */
 package clases;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -12,17 +13,17 @@ import java.io.Serializable;
 
 /**
  *
- * @author default
+ * @author TSB_Team 
  */
 public class TSB_OAHashtableReader implements Serializable {
     
-    private String archivo = "archivoTabla.dat";
+    private File archivo;
 
     public TSB_OAHashtableReader() {
     }
 
-    public TSB_OAHashtableReader(String nombre) {
-        archivo = nombre;
+    public TSB_OAHashtableReader(File f) {
+        archivo = f;
     }
 
     public TSB_OAHashtable leerTabla() {
@@ -35,14 +36,12 @@ public class TSB_OAHashtableReader implements Serializable {
 
             objectInput.close();
             fileInput.close();
-            
-            System.out.println("**TABLA CARGADA CON EXITO**");
         }
         catch(IOException ex ){
-            System.out.println("** ERROR DE I/O **" +"\n " + ex.getMessage());
+            
         }
         catch(ClassNotFoundException ex){
-            System.out.println("** ERROR... CLASE NO ENCONTRADA **" +"\n " + ex.getMessage());
+            
         }
         
         return tabla;

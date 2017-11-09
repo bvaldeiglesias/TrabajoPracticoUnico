@@ -5,15 +5,17 @@
  */
 package clases;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
  *
- * @author default
+ * @author TSB_Team
  */
-public class TSB_OAHashtableWriter{
+public class TSB_OAHashtableWriter implements Serializable{
  
     private String archivo = "archivoTabla.dat";
 
@@ -24,8 +26,7 @@ public class TSB_OAHashtableWriter{
         archivo = nombre;
     }
 
-    public void grabarTabla(TSB_OAHashtable tabla) {
-                
+    public boolean grabarTabla(TSB_OAHashtable tabla) {   
         try {
             FileOutputStream fileOutput = new FileOutputStream(archivo);
             ObjectOutputStream objectOutput = new ObjectOutputStream(fileOutput);
@@ -33,11 +34,13 @@ public class TSB_OAHashtableWriter{
 
             objectOutput.close();
             fileOutput.flush();
-            System.out.println("**TABLA GRABADA EXITOSAMENTE**");
+            return true;
 
         }
         catch(IOException ex ){
-            System.out.println("** ERROR DE I/O **" +"\n " + ex.getMessage());
+            File f = new File("E:\\Documentos\\NetBeansProjects\\TrabajoPracticoUnico\\archivoTabla.dat");
+            f.delete();
+            return false;
         }
     }
 }

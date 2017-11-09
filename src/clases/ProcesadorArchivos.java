@@ -8,7 +8,6 @@ package clases;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Scanner;
@@ -28,12 +27,16 @@ public class ProcesadorArchivos implements Serializable {
         this.tabla = new TSB_OAHashtable();
     }
 
-    public void cargarArchivo(File file) throws FileNotFoundException, IOException {
-        this.file = file;
-        fileInput = new FileInputStream(file);
-        objectInput = new ObjectInputStream(fileInput);
-
+    public ProcesadorArchivos(File f) {
+        this.tabla = this.leer(f);
     }
+
+//    public void cargarArchivo(File file) throws FileNotFoundException, IOException {
+//        this.file = file;
+//        fileInput = new FileInputStream(file);
+//        objectInput = new ObjectInputStream(fileInput);
+//
+//    }
 
     public void procesarPorPalabra(File file) {
         try (Scanner sc = new Scanner(file,"ISO-8859-1")) {
@@ -88,5 +91,16 @@ public class ProcesadorArchivos implements Serializable {
     
     public TSB_OAHashtable getTabla(){
         return tabla;
+    }
+
+    public boolean grabar() {
+        TSB_OAHashtableWriter writer = new TSB_OAHashtableWriter();
+        return writer.grabarTabla(tabla);
+        
+    }
+    
+    public TSB_OAHashtable leer(File f) {
+        TSB_OAHashtableReader reader = new TSB_OAHashtableReader(f);
+        return reader.leerTabla();
     }
 }

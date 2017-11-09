@@ -6,7 +6,6 @@
 package interfaces;
 
 import clases.ProcesadorArchivos;
-import clases.TSB_OAHashtableWriter;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -14,13 +13,13 @@ import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
-import javafx.stage.Popup;
 
 /**
  * FXML Controller class
@@ -63,9 +62,20 @@ public class InterfazFXMLController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        this.procesador = new ProcesadorArchivos();
-        this.cargado=false;
-    }    
+        
+        File f = new File("archivoTabla.dat");
+        System.out.println(f.getAbsolutePath());
+        if (f.isFile() && (f.exists() && !f.isDirectory())) {
+            this.procesador = new ProcesadorArchivos(f);
+            cargado=true;
+            lblDistintos.setText(String.valueOf(procesador.getCount()));
+            txtTabla.setText(procesador.toString());
+        }else{
+            this.procesador = new ProcesadorArchivos();
+            this.cargado = false;
+        }
+        
+    }  
 
     @FXML
     private void handleButtonAgregar(ActionEvent event) throws IOException {
@@ -112,8 +122,17 @@ public class InterfazFXMLController implements Initializable {
     
     @FXML
     private void handleButtonGrabar(ActionEvent event) {
-        TSB_OAHashtableWriter grabar = new TSB_OAHashtableWriter();
-        grabar.grabarTabla(procesador.getTabla());
+        if (procesador.grabar()) {
+            Alert a = new Alert(Alert.AlertType.INFORMATION);
+            a.setTitle("Grabar");
+            a.setHeaderText("Se grabó la tabla con exito.");
+            a.show();
+        }else {
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Grabar");
+            a.setHeaderText("Error al grabar la tabla.");
+            a.show();
+        }
     }
     
     @FXML
