@@ -37,7 +37,7 @@ public class ProcesadorArchivos implements Serializable {
             while (sc.hasNext()) //hasNextInt se fija is hay un proximo int
             {
                     String palabra = sc.next();
-                    palabra = palabra.replaceAll("[-+.^:,?¿¡!_*;<>()%«$#@»°'0123456789]", "");
+                    palabra = palabra.replaceAll("\\P{L}+", "");
                     palabra = palabra.toUpperCase();
                     if (!"".equals(palabra)){
                         insertarPalabra(palabra);
