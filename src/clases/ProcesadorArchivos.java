@@ -38,6 +38,8 @@ public class ProcesadorArchivos implements Serializable {
             {
                     String palabra = sc.next();
                     palabra = palabra.replaceAll("\\P{L}+", "");
+                    palabra = palabra.replaceAll("ª", "");
+                    palabra = palabra.replaceAll("º", "");
                     palabra = palabra.toUpperCase();
                     if (!"".equals(palabra)){
                         insertarPalabra(palabra);
