@@ -38,10 +38,10 @@ public class TSB_OAHashtableReader implements Serializable {
             fileInput.close();
         }
         catch(IOException ex ){
-            
+            return null;
         }
         catch(ClassNotFoundException ex){
-            
+            return null;
         }
         
         return tabla;

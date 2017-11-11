@@ -38,7 +38,7 @@ public class TSB_OAHashtableWriter implements Serializable{
 
         }
         catch(IOException ex ){
-            File f = new File("E:\\Documentos\\NetBeansProjects\\TrabajoPracticoUnico\\archivoTabla.dat");
+            File f = new File("archivoTabla.dat");
             f.delete();
             return false;
         }

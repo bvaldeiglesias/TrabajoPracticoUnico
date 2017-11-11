@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -540,17 +541,6 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
         return null;
     }
     
-    private int search_for_OPEN(K key) {
-        int k = h(key.hashCode());
-        AddIterator it = new AddIterator(k);
-        while (it.hasNext()) {
-            Map.Entry<K, V> entry = it.next();
-            if (entry == null) {
-                return it.current;
-            }
-        }
-        return -1;
-    }
     
     
     
@@ -779,36 +769,38 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
 
             @Override
             public boolean hasNext() {
-            if (TSB_OAHashtable.this.isEmpty()) return false;
-            if (current +1 >= table.length) {
-                return false;
-            } else {
-                return true;
-            }
+                if (TSB_OAHashtable.this.isEmpty()) {
+                    return false;
+                }
+                if (current + 1 >= table.length) {
+                    return false;
+                } else {
+                    return true;
+                }
             }
 
             @Override
             public K next() {
                 if (!hasNext()) {
-                throw new NoSuchElementException("No quedan elementos por recorrer");
-            
-                }  
-            
-            current ++;  
-            next_ok = true;    
+                    throw new NoSuchElementException("No quedan elementos por recorrer");
 
-            return table[current].getKey();
+                }
+
+                current++;
+                next_ok = true;
+
+                return table[current].getKey();
             }
 
             @Override
             public void remove() {
-            if (!next_ok) {
-                throw new IllegalStateException("remove(): debe invocar a next() antes de remove()...");
-            }
-            count--;
-            table[current] = new Tombstone();
-            
-            next_ok = false;   
+                if (!next_ok) {
+                    throw new IllegalStateException("remove(): debe invocar a next() antes de remove()...");
+                }
+                count--;
+                table[current] = new Tombstone();
+
+                next_ok = false;
             }
         }
     }
@@ -831,8 +823,10 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
             
             Map.Entry<K, V> entry = (Map.Entry<K,V>)o;
             K key = entry.getKey();
-            int index = TSB_OAHashtable.this.h(key);
-
+            
+            if (TSB_OAHashtable.this.containsKey(key)) {
+                return true;
+            }
             return false;
         }
         
@@ -842,20 +836,19 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
          */
         @Override
         public boolean remove(Object o) {
-//            if(o == null) { throw new NullPointerException("remove(): parámetro null");}
-//            if(!(o instanceof Entry)) { return false; }
-//
-//            Map.Entry<K, V> entry = (Map.Entry<K, V>) o;
-//            K key = entry.getKey();
-//            int index = TSB_OAHashtable.this.h(key);
-//            Map.Entry<K, V> bucket = TSB_OAHashtable.this.table[index];
-//            
-//            if(bucket.remove(entry)) 
-//            {
-//                TSB_OAHashtable.this.count--;
-//                TSB_OAHashtable.this.modCount++;
-//                return true;
-//            }
+            if(o == null) { throw new NullPointerException("remove(): parámetro null");}
+            if(!(o instanceof Entry)) { return false; }
+
+            Map.Entry<K, V> entry = (Map.Entry<K, V>) o;
+            K key = entry.getKey();
+            
+            
+            if (TSB_OAHashtable.this.remove(key) != null) {
+                TSB_OAHashtable.this.count--;
+                TSB_OAHashtable.this.modCount++;
+                return true;
+            }
+
               return false;
         }     
 
@@ -871,11 +864,6 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
         
         private class EntrySetIterator implements Iterator<Map.Entry<K,V>>{
 
-            // índice de la lista actualmente recorrida...
-            private int current_bucket;
-            
-            // índice de la lista anterior (si se requiere en remove())...
-            private int last_bucket;
                         
             // índice del elemento actual en el iterador (el que fue retornado 
             // la última vez por next() y será eliminado por remove())...
@@ -893,8 +881,6 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
              */
 
             public EntrySetIterator() {
-                current_bucket = 0; 
-                last_bucket = 0;
                 current_entry = -1;
                 next_ok = false;
                 expected_modCount = TSB_OAHashtable.this.modCount;
@@ -902,18 +888,46 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
             
             @Override
             public boolean hasNext() {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                if (TSB_OAHashtable.this.table == null) {
+                    return false;
+                }
+                if (current_entry >= TSB_OAHashtable.this.table.length) {
+                    return false;
+                }
+                return true;
             }
 
             @Override
             public Entry<K, V> next() {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                if (!hasNext()) {
+                    throw new NoSuchElementException("No quedan elementos por recorrer");
+                }
+                
+                if (TSB_OAHashtable.this.modCount != expected_modCount) {
+                    throw new ConcurrentModificationException("next(): modificacion inesperada de tabla");
+                    
+                }
+                
+                current_entry++;
+                next_ok = true;
+                
+                Entry next = (Entry) table[current_entry];
+                
+                return next;
             }
 
             @Override
             public void remove() {
-                //Iterator.super.remove(); //To change body of generated methods, choose Tools | Templates.
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                if (!next_ok) {
+                    throw new IllegalStateException("remove(): debe invocar a next() antes de remove()...");
+                }
+                
+                if (TSB_OAHashtable.this.remove(table[current_entry].getKey()) != null) {
+                    count--;
+                    next_ok=false;
+                    modCount++;
+                    this.expected_modCount++;
+                }
             }            
         }        
     }
@@ -937,7 +951,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
 
         @Override
         public boolean contains(Object o) {
-            return TSB_OAHashtable.this.containsValue(o);
+            return TSB_OAHashtable.this.containsValue((V)o);
         }
 
         private class ValueCollectionIterator implements Iterator<V> {
@@ -964,18 +978,41 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
 
             @Override
             public boolean hasNext() {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
+                if (TSB_OAHashtable.this.table == null) {
+                    return false;
+                }
+                if (current_entry >= TSB_OAHashtable.this.table.length) {
+                    return false;
+                }
+                return true;}
 
             @Override
             public V next() {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
+                if (!hasNext()) {
+                    throw new NoSuchElementException("No quedan elementos por recorrer");
+                }
+                
+                if (TSB_OAHashtable.this.modCount != expected_modCount) {
+                    throw new ConcurrentModificationException("next(): modificacion inesperada de tabla");
+                    
+                }
+
+                current_entry++;
+                next_ok = true;
+
+                return table[current_entry].getValue();}
 
             @Override
             public void remove() {
-                throw new UnsupportedOperationException("Not supported yet.");
-            }
+                if (!next_ok) {
+                    throw new IllegalStateException("remove(): debe invocar a next() antes de remove()...");
+                }
+                count--;
+                modCount++;
+                expected_modCount++;
+                table[current_entry] = new Tombstone();
+
+                next_ok = false;}
         }
     }
     
