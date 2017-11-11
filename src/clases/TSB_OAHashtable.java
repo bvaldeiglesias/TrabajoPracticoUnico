@@ -1,5 +1,7 @@
 package clases;
 
+
+
 import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
@@ -177,7 +179,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
         }
 
         if (this.containsKey(key)) {
-           IteratorInterno it = new IteratorInterno(h(key.hashCode()));
+           SearchIterator it = new SearchIterator (h(key.hashCode()));
             while (it.hasNext()) {
                 Map.Entry<K, V> entry = it.next();
                 if (entry.getKey().equals(key)) {
@@ -187,11 +189,11 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
             }
 
         } else {
-            IteratorInterno it = new IteratorInterno(h(key.hashCode()));
+            AddIterator it = new AddIterator(h(key.hashCode()));
             while (it.hasNext()) {
                 Map.Entry<K, V> entry = it.next();
-                if (entry == null) {
-                    it.add(key, value);
+                if (entry == null || entry.getClass().equals(Tombstone.class)) {
+                    this.table[it.current] = new Entry(key, value) ;
                     break;
                 }
             }
@@ -221,18 +223,20 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
         int ib = this.h(key.hashCode());
         V old = null;
 
-        IteratorInterno it = new IteratorInterno(ib);
-        while (it.hasNext()) {
-            Map.Entry<K, V> entry = it.next();
-            if (key.equals(entry.getKey())) {
-                it.remove();
-                old = entry.getValue();
+        if (this.containsKey( (K) key)) {
+            SearchIterator it = new SearchIterator(h(key.hashCode()));
+            while (it.hasNext()) {
+                Map.Entry<K, V> entry = it.next();
+                if (entry.getKey().equals(key)) {
+                    it.remove();
+                    break;
+                }
             }
+            this.count--;
+            this.modCount++;
+
         }
-
-        this.count--;
-        this.modCount++;
-
+        
         return old;
     }
 
@@ -404,13 +408,13 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
      */
     @Override
     public String toString() {
-        StringBuilder cad = new StringBuilder("");
+        StringBuilder cad = new StringBuilder("Table: { \n");
         for (int i = 0; i < this.table.length; i++) {
-            if (this.table[i] != null) {
-                cad.append("Palabra: ").append(this.table[i].getKey());
-                cad.append(" - Frecuencia: ").append(this.table[i].getValue()).append("\n");
+            if (this.table[i] != null && !(this.table[i].getClass().equals(Tombstone.class))) {
+              cad.append(this.table[i].toString());
             }   
         }
+        cad.append("}");
         return cad.toString();
     }
 
@@ -461,7 +465,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
 
         // recorrer el viejo arreglo y redistribuir los objetos que tenia...
         for (Map.Entry<K, V> entry : old) {
-            if (entry != null) {
+            if (entry != null && !(entry.getClass().equals(Tombstone.class)) ) {
                 this.put(entry.getKey(), entry.getValue());
             }
         }
@@ -526,7 +530,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
             return null;
         }
         int k = h(key.hashCode());
-        IteratorInterno it = new IteratorInterno(k);
+        SearchIterator it = new SearchIterator(k);
         while (it.hasNext()) {
             Map.Entry<K, V> entry = it.next();
             if (entry != null && key.equals(entry.getKey())) {
@@ -536,17 +540,19 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
         return null;
     }
     
-    private Map.Entry<K, V> search_for_OPEN_pos(K key) {
+    private int search_for_OPEN(K key) {
         int k = h(key.hashCode());
-        IteratorInterno it = new IteratorInterno(k);
+        AddIterator it = new AddIterator(k);
         while (it.hasNext()) {
             Map.Entry<K, V> entry = it.next();
-            if (key.equals(entry.getKey())) {
-                return entry;
+            if (entry == null) {
+                return it.current;
             }
         }
-        return null;
+        return -1;
     }
+    
+    
     
 
     //************************ Clases Internas.
@@ -554,41 +560,51 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
      * Clase interna de un iterador para recorrer la lista de manera
      * exponencial, y no lineal.
      */
-    private class IteratorInterno implements Iterator<Map.Entry<K,V>> {
+    private class SearchIterator implements Iterator<Map.Entry<K,V>> {
 
         private int current; //indice del elemento que hay que procesar
         private boolean next_ok; // true: next fue invocado (usado por remove()...)
         private int valorCuadratico = 0; //indice utilizado para el avance cuadratico
         
-        public IteratorInterno(int index) {
+        public SearchIterator(int index) {
             current = index;
             next_ok = false;
         }
 
         @Override
         public boolean hasNext() {
-            current += (valorCuadratico*valorCuadratico);
-            valorCuadratico++;
-            if (current > table.length*10 ) {
+            if (table == null) {
                 return false;
             }
-            if (current >= table.length) {
-                    current = (current % table.length);     
-            } 
-            if (table == null) return false;
-  
+
+            int aux = current + (valorCuadratico * valorCuadratico);
+            if (aux >= table.length) {
+                aux = (current % table.length);
+            }
+            if (table[aux] == null) {
+                return false;
+            }
+
             return true;
         }
 
         @Override
         public Map.Entry<K, V> next() {
-//            if (!hasNext()) {
-//                throw new NoSuchElementException("No quedan elementos por recorrer");
-//            }
-
+            if (!hasNext()) {
+                throw new NoSuchElementException("No quedan elementos por recorrer");
+            }
+            
+            
+            
+            current += (valorCuadratico*valorCuadratico);
+            valorCuadratico++;
+            if (current >= table.length) {
+                    current = (current % table.length);     
+            }
+            Map.Entry next = table[current];
             next_ok = true;    
 
-            return table[current];
+            return next;
         }
         
         @Override
@@ -602,13 +618,46 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
             next_ok = false;
         }
         
-        public void add(K key, V value){
-            table[current] = new Entry(key, value);
-        }
-        
         public void setValue(V value){
             table[current].setValue(value);
         }
+    }
+    
+    private class AddIterator implements Iterator<Map.Entry<K,V>> {
+
+        private int current; //indice del elemento que hay que procesar
+        private int valorCuadratico = 0; //indice utilizado para el avance cuadratico
+        
+        public AddIterator(int index) {
+            current = index;
+        }
+
+        @Override
+        public boolean hasNext() {
+            if (table == null) return false;
+            if (current > table.length) {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public Map.Entry<K, V> next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException("No quedan elementos por recorrer");
+            }
+
+            current += (valorCuadratico*valorCuadratico);
+            valorCuadratico++;
+            if (current >= table.length) {
+                current = (current % table.length);
+            }
+            Map.Entry next = table[current];
+
+            return next;
+        }
+
     }
 
     /*
@@ -624,9 +673,6 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
         private V value;
 
         public Entry(K key, V value) {
-            if (key == null || value == null) {
-                throw new IllegalArgumentException("Entry(): parámetro null");
-            }
             this.key = key;
             this.value = value;
         }
@@ -682,7 +728,7 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
 
         @Override
         public String toString() {
-            return "Entry{" + "key=" + key + ", value=" + value + '}';
+            return "Entry{" + "key=" + key + ", value=" + value + '}' + "\n" ;
         }
     }
 
@@ -933,11 +979,12 @@ public class TSB_OAHashtable<K, V> implements Map<K, V>, Serializable {
         }
     }
     
-    public class Tombstone extends Entry<K, V> implements Serializable{
-      private Entry entry;
+    public class Tombstone extends Entry<K, V> implements Serializable {
+
+        private Entry entry;
 
         public Tombstone() {
-            super(null , null);
+            super(null, null);
         }
-      }
+    }
 }

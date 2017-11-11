@@ -31,12 +31,6 @@ public class ProcesadorArchivos implements Serializable {
         this.tabla = this.leer(f);
     }
 
-//    public void cargarArchivo(File file) throws FileNotFoundException, IOException {
-//        this.file = file;
-//        fileInput = new FileInputStream(file);
-//        objectInput = new ObjectInputStream(fileInput);
-//
-//    }
 
     public void procesarPorPalabra(File file) {
         try (Scanner sc = new Scanner(file,"ISO-8859-1")) {

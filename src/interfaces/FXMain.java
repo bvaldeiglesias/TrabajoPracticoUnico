@@ -6,18 +6,11 @@
 package interfaces;
 
 import java.io.IOException;
-import java.util.Optional;
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 /**
  *
  * @author TSB_Team
@@ -33,7 +26,7 @@ public class FXMain extends Application  {
         Scene scene = new Scene(root);
         
         primaryStage.setScene(scene);
-        primaryStage.setOnCloseRequest(confirmCloseEventHandler);
+//        primaryStage.setOnCloseRequest(confirmCloseEventHandler);
         primaryStage.setTitle("Procesador de Archivos");
         primaryStage.show();
     }
@@ -45,26 +38,26 @@ public class FXMain extends Application  {
         launch(args);
     }
     
-    private EventHandler<WindowEvent> confirmCloseEventHandler = event -> {
-        Alert closeConfirmation = new Alert(
-                Alert.AlertType.CONFIRMATION,
-                "¿Desea grabar antes de salir?"
-        );
-        Button exitButton = (Button) closeConfirmation.getDialogPane().lookupButton(
-                ButtonType.OK
-        );
-        
-        exitButton.setText("Grabar y salir");
-        
-        closeConfirmation.setHeaderText("Confirmar cierre");
-        closeConfirmation.initModality(Modality.APPLICATION_MODAL);
-        closeConfirmation.initOwner(mainStage);
-
-
-        Optional<ButtonType> closeResponse = closeConfirmation.showAndWait();
-        if (!ButtonType.OK.equals(closeResponse.get())) {
-            event.consume();
-        }
-    };
+//    private EventHandler<WindowEvent> confirmCloseEventHandler = event -> {
+//        Alert closeConfirmation = new Alert(
+//                Alert.AlertType.CONFIRMATION,
+//                "¿Desea grabar antes de salir?"
+//        );
+//        Button exitButton = (Button) closeConfirmation.getDialogPane().lookupButton(
+//                ButtonType.OK
+//        );
+//        
+//        exitButton.setText("Grabar y salir");
+//        
+//        closeConfirmation.setHeaderText("Confirmar cierre");
+//        closeConfirmation.initModality(Modality.APPLICATION_MODAL);
+//        closeConfirmation.initOwner(mainStage);
+//
+//
+//        Optional<ButtonType> closeResponse = closeConfirmation.showAndWait();
+//        if (!ButtonType.OK.equals(closeResponse.get())) {
+//            event.consume();
+//        }
+//    };
     
 }
